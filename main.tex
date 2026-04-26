@@ -1,0 +1,28 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+# Π(t)
+def pi_func(t):
+    return np.where(np.abs(t) <= 0.5, 1.0, 0.0)
+
+# аналитический Фурье-образ
+def pi_hat_analytic(nu):
+    return np.sinc(nu)  # numpy sinc уже нормированная
+
+
+#графики для пункта 1.2
+t = np.linspace(-2, 2, 1000)
+nu = np.linspace(-10, 10, 1000)
+
+plt.figure()
+plt.plot(t, pi_func(t))
+plt.title("Π(t)")
+plt.grid()
+
+plt.figure()
+plt.plot(nu, pi_hat_analytic(nu))
+plt.title("Analytical Π̂(ν)")
+plt.grid()
+
+plt.show()
