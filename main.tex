@@ -278,27 +278,27 @@
 
 Восстановление функции улучшается по сравнению с предыдущими случаями, но всё ещё содержит сглаживание границ и небольшие осцилляции.
 
-% --- SET 4 ---
-\begin{figure}[H]
-\centering
+% % --- SET 4 ---
+% \begin{figure}[H]
+% \centering
 
-\begin{subfigure}{0.48\textwidth}
-\includegraphics[width=\textwidth]{task1/figures/1_3_set_4_spectrum.png}
-\caption{Спектр}
-\end{subfigure}
-\hfill
-\begin{subfigure}{0.48\textwidth}
-\includegraphics[width=\textwidth]{task1/figures/1_3_set_4_reconstruction.png}
-\caption{Восстановление}
-\end{subfigure}
+% \begin{subfigure}{0.48\textwidth}
+% \includegraphics[width=\textwidth]{task1/figures/1_3_set_4_spectrum.png}
+% \caption{Спектр}
+% \end{subfigure}
+% \hfill
+% \begin{subfigure}{0.48\textwidth}
+% \includegraphics[width=\textwidth]{task1/figures/1_3_set_4_reconstruction.png}
+% \caption{Восстановление}
+% \end{subfigure}
 
-\end{figure}
+% \end{figure}
 
-В данном случае наблюдается дальнейшее улучшение качества численного преобразования. Увеличение интервала $T$ приводит к уменьшению краевых эффектов и более точному воспроизведению формы спектра.
+% В данном случае наблюдается дальнейшее улучшение качества численного преобразования. Увеличение интервала $T$ приводит к уменьшению краевых эффектов и более точному воспроизведению формы спектра.
 
-Спектр становится более гладким и ближе к аналитическому выражению $\mathrm{sinc}$, однако небольшие отклонения всё ещё присутствуют из-за дискретизации по времени.
+% Спектр становится более гладким и ближе к аналитическому выражению $\mathrm{sinc}$, однако небольшие отклонения всё ещё присутствуют из-за дискретизации по времени.
 
-Восстановление функции заметно улучшается: форма прямоугольного импульса становится более выраженной, а искажения на границах уменьшаются.
+% Восстановление функции заметно улучшается: форма прямоугольного импульса становится более выраженной, а искажения на границах уменьшаются.
 
 % --- SET 5 ---
 \begin{figure}[H]
@@ -325,47 +325,47 @@
     
 
 % --- SET 6 ---
-\begin{figure}[H]
-\centering
+% \begin{figure}[H]
+% \centering
 
-\begin{subfigure}{0.48\textwidth}
-\includegraphics[width=\textwidth]{task1/figures/1_3_set_6_spectrum.png}
-\caption{Спектр}
-\end{subfigure}
-\hfill
-\begin{subfigure}{0.48\textwidth}
-\includegraphics[width=\textwidth]{task1/figures/1_3_set_6_reconstruction.png}
-\caption{Восстановление}
-\end{subfigure}
+% \begin{subfigure}{0.48\textwidth}
+% \includegraphics[width=\textwidth]{task1/figures/1_3_set_6_spectrum.png}
+% \caption{Спектр}
+% \end{subfigure}
+% \hfill
+% \begin{subfigure}{0.48\textwidth}
+% \includegraphics[width=\textwidth]{task1/figures/1_3_set_6_reconstruction.png}
+% \caption{Восстановление}
+% \end{subfigure}
 
-\end{figure}
+% \end{figure}
 
-В данном случае наблюдается дальнейшая стабилизация результатов. Увеличение интервала $T$ и уменьшение шага $\Delta t$ приводят к более точному численному приближению интеграла Фурье.
+% В данном случае наблюдается дальнейшая стабилизация результатов. Увеличение интервала $T$ и уменьшение шага $\Delta t$ приводят к более точному численному приближению интеграла Фурье.
 
-Спектр становится более гладким и лучше совпадает с аналитической функцией $\mathrm{sinc}$, однако сохраняются незначительные отклонения в области высоких частот.
+% Спектр становится более гладким и лучше совпадает с аналитической функцией $\mathrm{sinc}$, однако сохраняются незначительные отклонения в области высоких частот.
 
-Восстановление функции становится более устойчивым, границы прямоугольного импульса выражены чётче.
+% Восстановление функции становится более устойчивым, границы прямоугольного импульса выражены чётче.
 % --- SET 7 ---
-\begin{figure}[H]
-\centering
+% \begin{figure}[H]
+% \centering
 
-\begin{subfigure}{0.48\textwidth}
-\includegraphics[width=\textwidth]{task1/figures/1_3_set_7_spectrum.png}
-\caption{Спектр}
-\end{subfigure}
-\hfill
-\begin{subfigure}{0.48\textwidth}
-\includegraphics[width=\textwidth]{task1/figures/1_3_set_7_reconstruction.png}
-\caption{Восстановление}
-\end{subfigure}
+% \begin{subfigure}{0.48\textwidth}
+% \includegraphics[width=\textwidth]{task1/figures/1_3_set_7_spectrum.png}
+% \caption{Спектр}
+% \end{subfigure}
+% \hfill
+% \begin{subfigure}{0.48\textwidth}
+% \includegraphics[width=\textwidth]{task1/figures/1_3_set_7_reconstruction.png}
+% \caption{Восстановление}
+% \end{subfigure}
 
-\end{figure}
+% \end{figure}
 
-При дальнейшем уменьшении шага дискретизации $\Delta t$ наблюдается существенное улучшение точности вычисления Фурье-образа.
+% При дальнейшем уменьшении шага дискретизации $\Delta t$ наблюдается существенное улучшение точности вычисления Фурье-образа.
 
-Спектр практически полностью соответствует аналитическому выражению, включая боковые лепестки функции $\mathrm{sinc}$.
+% Спектр практически полностью соответствует аналитическому выражению, включая боковые лепестки функции $\mathrm{sinc}$.
 
-Восстановленная функция становится близкой к идеальной прямоугольной форме, искажения на границах минимальны.
+% Восстановленная функция становится близкой к идеальной прямоугольной форме, искажения на границах минимальны.
 
 % --- SET 8 ---
 \begin{figure}[H]

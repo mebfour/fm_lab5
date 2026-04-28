@@ -191,7 +191,7 @@ F_fft = fft_unitary(f, dt)
 f_rec_fft = ifft_unitary(F_fft, dnu)
 
 T_list = [5, 45, 15, 15, 15]
-dt_list = [0.05, 0.05, 0.05, 0.2, 0.5]
+dt_list = [0.05, 0.05, 0.05, 0.02, 0.01]
 
 for i, (T, dt) in enumerate(zip(T_list, dt_list)):
 
