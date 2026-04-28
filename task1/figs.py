@@ -4,13 +4,25 @@ import os
 
 output_dir = "task1/figures"
 
+# Настройка шрифтов
+plt.rcParams.update({
+    "font.size": 16,          # базовый размер
+    "axes.titlesize": 18,     # заголовок графика
+    "axes.labelsize": 16,     # подписи осей
+    "xtick.labelsize": 14,    # подписи X
+    "ytick.labelsize": 14,    # подписи Y
+    "legend.fontsize": 16,    
+    "figure.titlesize": 18
+})
+
+
 # Π(t)
 def pi_func(t):
     return np.where(np.abs(t) <= 0.5, 1.0, 0.0)
 
 # аналитический Фурье-образ
 def pi_hat_analytic(nu):
-    return np.sinc(nu)  # numpy sinc уже нормированная
+    return np.sinc(nu)  
 
 # графики для пункта 1.2
 t = np.linspace(-2, 2, 1000)
@@ -68,21 +80,7 @@ f = pi_func(t)
 F_num = fourier_trapz(t, f, nu)
 f_rec = inverse_fourier_trapz(nu, F_num, t)
 
-# графики  сравнения
-plt.figure()
-plt.plot(nu, np.real(F_num), label="numerical")
-plt.plot(nu, pi_hat_analytic(nu), '--', label="analytic")
-plt.legend()
-plt.title("Fourier transform comparison")
-plt.grid()
 
-plt.figure()
-plt.plot(t, f, label="original")
-plt.plot(t, np.real(f_rec), '--', label="reconstructed")
-plt.legend()
-plt.title("Reconstruction comparison")
-plt.grid()
-plt.show()
 
 
 #  пункт 1.5 - DFT
@@ -106,21 +104,6 @@ f_rec_fft = ifft_unitary(F_fft, dnu)
 
 nu_fft = np.fft.fftshift(np.fft.fftfreq(N, dt))
 
-plt.figure()
-plt.plot(nu_fft, np.abs(F_fft), label="FFT")
-plt.plot(nu, np.abs(pi_hat_analytic(nu)), '--', label="analytic")
-plt.legend()
-plt.title("FFT vs analytic spectrum")
-plt.grid()
-
-plt.figure()
-plt.plot(t, f, label="original")
-plt.plot(t, np.real(f_rec_fft), '--', label="FFT reconstructed")
-plt.legend()
-plt.title("FFT reconstruction")
-plt.grid()
-
-plt.show()
 
 
 #-------------------------------- перебор
@@ -139,7 +122,7 @@ param_sets = [
     {"T": 5, "dt": 0.01, "V": 50, "dnu": 0.1},  # почти идеал
 ]
 
-
+prefix = "1_3"
 for i, p in enumerate(param_sets):
     T, dt, V, dnu = p["T"], p["dt"], p["V"], p["dnu"]
 
@@ -164,7 +147,7 @@ for i, p in enumerate(param_sets):
     plt.legend()
     plt.grid()
     fig1.tight_layout()
-    fig1.savefig(os.path.join(output_dir, f"1_5_set_{i+1}_spectrum.png"), dpi=300)
+    fig1.savefig(os.path.join(output_dir, f"{prefix}_set_{i+1}_spectrum.png"), dpi=300)
     plt.close(fig1)  # Освобождаем память
 
     # --------- ГРАФИК 2: восстановление ----------
@@ -175,10 +158,9 @@ for i, p in enumerate(param_sets):
     plt.legend()
     plt.grid()
     fig2.tight_layout()
-    fig2.savefig(os.path.join(output_dir, f"1_5_set_{i+1}_reconstruction.png"), dpi=300)
+    
+    fig2.savefig(os.path.join(output_dir, f"{prefix}_set_{i+1}_reconstruction.png"), dpi=300)
     plt.close(fig2)  # Освобождаем память
 
-    # Опционально: вывод прогресса в консоль
     print(f"Сохранено: set_{i+1}")
 
-# plt.show()  # Раскомментируйте, если хотите посмотреть все графики сразу после выполнения цикла

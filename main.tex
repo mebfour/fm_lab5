@@ -5,7 +5,6 @@
 \usepackage[T1, T2A]{fontenc}           % Загружаем пакет с поддержкой кирилицы
 \usepackage[utf8]{inputenc}             % Загружаем пакет с поддержкой кодировки файла и символов
 \usepackage[english, russian]{babel}    % Пакет для поддержки русского языка
-\usepackage{subfig}
 \usepackage{graphicx}                   % Загружаем пакет для добавления различной графики (pdf, jpg, png)
 \usepackage{import}                     % Загружаем пакет для продвинутого импорта, в частности изображений pdf_tex из графического редактора inkscape (\import{<path to file>}{<filename>.pdf_tex})
 \usepackage{subcaption}                 % Пакет для поддержки сетки из фигур, например в две колонки или матрицей
@@ -19,7 +18,7 @@
 \usepackage[colorlinks]{hyperref}
 \usepackage{indentfirst}                % Пакет, чтобы починить красную строку
 \usepackage{listings}                   % Поддержка листингов, оформления кода программы
-
+\usepackage{comment}
 \addto\captionsrussian{
   \renewcommand{\figurename}{Рисунок}
 } 
@@ -119,7 +118,318 @@
     
 \end{titlepage}
 
+\section{НЕПРЕРЫВНОЕ И ДИСКРЕТНОЕ ПРЕОБРАЗОВАНИЕ
+ФУРЬЕ}
+
+\subsection{Аналитическое вычисление Фурье-образа}
+
+Рассмотрим прямоугольную функцию:
+\[
+\Pi(t)=
+\begin{cases}
+1, & |t| \le \frac{1}{2}, \\
+0, & |t| > \frac{1}{2}.
+\end{cases}
+\]
+
+Найдём её Фурье-образ:
+\[
+\hat{\Pi}(\nu) = \int_{-\infty}^{+\infty} \Pi(t) e^{-2\pi i \nu t}\, dt.
+\]
+
+Так как функция отлична от нуля только на отрезке $[-\frac{1}{2}, \frac{1}{2}]$, получаем:
+\[
+\hat{\Pi}(\nu) = \int_{-1/2}^{1/2} e^{-2\pi i \nu t}\, dt.
+\]
+
+Вычислим интеграл:
+\[
+\hat{\Pi}(\nu) =
+\left[
+\frac{e^{-2\pi i \nu t}}{-2\pi i \nu}
+\right]_{-1/2}^{1/2}
+=
+\frac{e^{-\pi i \nu} - e^{\pi i \nu}}{-2\pi i \nu}.
+\]
+
+Используя формулу Эйлера, получаем:
+\[
+\hat{\Pi}(\nu) = \frac{\sin(\pi \nu)}{\pi \nu}.
+\]
+
+Таким образом,
+\[
+\hat{\Pi}(\nu) = \mathrm{sinc}(\nu),
+\]
+где
+\[
+\mathrm{sinc}(\nu) = \frac{\sin(\pi \nu)}{\pi \nu}.
+\]
+
+\clearpage
+\subsection{Графики функции и её Фурье-образа}
+
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.7\textwidth]{task1/figures/Pi_1.png}
+\caption{График функции $\Pi(t)$}
+\label{fig:pi_t}
+\end{figure}
+
+
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.7\textwidth]{task1/figures/Pi_hat_1.png}
+\caption{Аналитический Фурье-образ $\Pi(t)$ (функция sinc)}
+\label{fig:pi_hat}
+\end{figure}
+
+
+\subsection{Численное Фурье-преобразование с использованием метода трапеций}
+
+В данном пункте функция $\Pi(t)$ задаётся численно, после чего её Фурье-образ вычисляется с помощью численного интегрирования (метод трапеций), и затем выполняется обратное преобразование Фурье.
+
+Схема вычислений имеет вид:
+\[
+\Pi(t) \xrightarrow{\text{trapz}} \hat{\Pi}(\nu) \xrightarrow{\text{trapz}} \Pi(t).
+\]
+
+\subsubsection{Численная реализация}
+
+Прямое преобразование Фурье аппроксимируется суммой:
+\[
+\hat{\Pi}(\nu) \approx \sum_{k} \Pi(t_k)\, e^{-2\pi i \nu t_k} \Delta t.
+\]
+
+Обратное преобразование:
+\[
+\Pi(t) \approx \sum_{m} \hat{\Pi}(\nu_m)\, e^{2\pi i \nu_m t} \Delta \nu.
+\]
+
+
+\subsection{Результаты для различных параметров}
+
+Ниже представлены результаты численного преобразования Фурье и восстановления функции для различных наборов параметров.
+
+\begin{figure}[htbp]
+\centering
+
+\begin{subfigure}{0.48\textwidth}
+\includegraphics[width=\textwidth]{task1/figures/1_3_set_1_spectrum.png}
+\caption{Спектр}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.48\textwidth}
+\includegraphics[width=\textwidth]{task1/figures/1_3_set_1_reconstruction.png}
+\caption{Восстановление}
+\end{subfigure}
+
+\caption{Set 1}
+\end{figure}
+
+В данном случае наблюдается существенное расхождение между численным и аналитическим спектрами. Форма функции sinc воспроизводится неточно, присутствуют искажения и шум.
+
+Восстановленная функция значительно отличается от исходной: границы размыты, наблюдаются паразитные осцилляции.
+
+Это связано с неудачным выбором параметров:большой шаг $\Delta t$ приводит к грубой аппроксимации интеграла, 
+малый интервал $T$ усиливает краевые эффекты,
+ограниченный диапазон частот $V$ приводит к потере части спектральной информации.
+\begin{figure}[H]
+\centering
+
+\begin{subfigure}{0.48\textwidth}
+\includegraphics[width=\textwidth]{task1/figures/1_3_set_2_spectrum.png}
+\caption{Спектр}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.48\textwidth}
+\includegraphics[width=\textwidth]{task1/figures/1_3_set_2_reconstruction.png}
+\caption{Восстановление}
+\end{subfigure}
+
+\end{figure}
+
+В данном случае наблюдается улучшение по сравнению с предыдущим набором параметров. Уменьшение шага $\Delta t$ приводит к более точной аппроксимации интеграла, вследствие чего спектр становится ближе к аналитической функции sinc.
+
+Тем не менее, из-за малого значения $T$ сохраняются краевые эффекты, что проявляется в искажении боковых лепестков спектра и неточностях при восстановлении функции.
+
+Восстановленная функция уже лучше соответствует исходной, однако её границы остаются сглаженными.
+
+\begin{figure}[H]
+\centering
+
+\begin{subfigure}{0.48\textwidth}
+\includegraphics[width=\textwidth]{task1/figures/1_3_set_3_spectrum.png}
+\caption{Спектр}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.48\textwidth}
+\includegraphics[width=\textwidth]{task1/figures/1_3_set_3_reconstruction.png}
+\caption{Восстановление}
+\end{subfigure}
+
+\end{figure}
+
+В данном случае увеличение интервала интегрирования $T$ положительно влияет на результат: улучшается частотное разрешение, и форма спектра становится ближе к аналитической.
+
+Однако из-за относительно большого шага $\Delta t$ точность численного интегрирования остаётся ограниченной, что приводит к заметным отклонениям в спектре.
+
+Восстановление функции улучшается по сравнению с предыдущими случаями, но всё ещё содержит сглаживание границ и небольшие осцилляции.
+
+% --- SET 4 ---
+\begin{figure}[H]
+\centering
+
+\begin{subfigure}{0.48\textwidth}
+\includegraphics[width=\textwidth]{task1/figures/1_3_set_4_spectrum.png}
+\caption{Спектр}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.48\textwidth}
+\includegraphics[width=\textwidth]{task1/figures/1_3_set_4_reconstruction.png}
+\caption{Восстановление}
+\end{subfigure}
+
+\end{figure}
+
+В данном случае наблюдается дальнейшее улучшение качества численного преобразования. Увеличение интервала $T$ приводит к уменьшению краевых эффектов и более точному воспроизведению формы спектра.
+
+Спектр становится более гладким и ближе к аналитическому выражению $\mathrm{sinc}$, однако небольшие отклонения всё ещё присутствуют из-за дискретизации по времени.
+
+Восстановление функции заметно улучшается: форма прямоугольного импульса становится более выраженной, а искажения на границах уменьшаются.
+
+% --- SET 5 ---
+\begin{figure}[H]
+\centering
+
+\begin{subfigure}{0.48\textwidth}
+\includegraphics[width=\textwidth]{task1/figures/1_3_set_5_spectrum.png}
+\caption{Спектр}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.48\textwidth}
+\includegraphics[width=\textwidth]{task1/figures/1_3_set_5_reconstruction.png}
+\caption{Восстановление}
+\end{subfigure}
+
+\end{figure}
+
+При увеличении диапазона частот $V$ наблюдается более полное описание спектральной структуры функции. В частности, лучше воспроизводятся боковые лепестки функции $\mathrm{sinc}$.
+
+Численный спектр становится более устойчивым, а влияние обрезания по частоте уменьшается.
+
+Восстановленная функция становится более точной: уменьшается размытие и улучшается совпадение с исходной прямоугольной функцией $\Pi(t)$, однако сохраняются незначительные артефакты, связанные с дискретизацией по частоте.
+
+    
+
+% --- SET 6 ---
+\begin{figure}[H]
+\centering
+
+\begin{subfigure}{0.48\textwidth}
+\includegraphics[width=\textwidth]{task1/figures/1_3_set_6_spectrum.png}
+\caption{Спектр}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.48\textwidth}
+\includegraphics[width=\textwidth]{task1/figures/1_3_set_6_reconstruction.png}
+\caption{Восстановление}
+\end{subfigure}
+
+\end{figure}
+
+В данном случае наблюдается дальнейшая стабилизация результатов. Увеличение интервала $T$ и уменьшение шага $\Delta t$ приводят к более точному численному приближению интеграла Фурье.
+
+Спектр становится более гладким и лучше совпадает с аналитической функцией $\mathrm{sinc}$, однако сохраняются незначительные отклонения в области высоких частот.
+
+Восстановление функции становится более устойчивым, границы прямоугольного импульса выражены чётче.
+% --- SET 7 ---
+\begin{figure}[H]
+\centering
+
+\begin{subfigure}{0.48\textwidth}
+\includegraphics[width=\textwidth]{task1/figures/1_3_set_7_spectrum.png}
+\caption{Спектр}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.48\textwidth}
+\includegraphics[width=\textwidth]{task1/figures/1_3_set_7_reconstruction.png}
+\caption{Восстановление}
+\end{subfigure}
+
+\end{figure}
+
+При дальнейшем уменьшении шага дискретизации $\Delta t$ наблюдается существенное улучшение точности вычисления Фурье-образа.
+
+Спектр практически полностью соответствует аналитическому выражению, включая боковые лепестки функции $\mathrm{sinc}$.
+
+Восстановленная функция становится близкой к идеальной прямоугольной форме, искажения на границах минимальны.
+
+% --- SET 8 ---
+\begin{figure}[H]
+\centering
+
+\begin{subfigure}{0.48\textwidth}
+\includegraphics[width=\textwidth]{task1/figures/1_3_set_8_spectrum.png}
+\caption{Спектр}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.48\textwidth}
+\includegraphics[width=\textwidth]{task1/figures/1_3_set_8_reconstruction.png}
+\caption{Восстановление}
+\end{subfigure}
+
+\end{figure}
+
+В данном случае достигается наилучшее совпадение численного и аналитического результатов. Малый шаг дискретизации $\Delta t$ и широкий диапазон интегрирования $T$ обеспечивают высокую точность аппроксимации интеграла Фурье.
+
+Спектр практически полностью совпадает с функцией $\mathrm{sinc}$, включая все характерные особенности.
+
+Восстановленная функция почти не отличается от исходной $\Pi(t)$, что свидетельствует о высокой точности численного метода.
+
+
+
+\subsubsection{Сравнение с аналитическим решением}
+
+Численно полученный спектр сравнивался с аналитическим выражением:
+\[
+\hat{\Pi}(\nu) = \frac{\sin(\pi \nu)}{\pi \nu}.
+\]
+
+При достаточно малом $\Delta t$ и большом $T$ наблюдается хорошее совпадение результатов.
+
+
+
+\subsubsection{Выводы}
+
+\begin{itemize}
+
+\item Увеличение интервала интегрирования $T$ улучшает частотное разрешение и уменьшает краевые эффекты.
+
+\item Уменьшение шага $\Delta t$ повышает точность численного интегрирования, однако увеличивает вычислительную сложность.
+
+\item Ограничение частотного интервала $V$ приводит к потере высокочастотных компонент и ухудшению восстановления сигнала.
+
+\item Увеличение шага $\Delta \nu$ приводит к снижению точности обратного преобразования.
+
+\item Метод трапеций даёт хорошее приближение Фурье-преобразования, однако работает значительно медленнее по сравнению с быстрыми алгоритмами (FFT).
+
+\end{itemize}
+
+
+\subcaption{Использование DFT}
+
+
+
+
+
+
+
+\clearpage
 \section{Сэмплирование}
+
 
 \subsection{Задание}
 
