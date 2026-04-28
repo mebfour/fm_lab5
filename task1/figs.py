@@ -82,24 +82,10 @@ f_rec = inverse_fourier_trapz(nu, F_num, t)
 
 
 
-
-#  пункт 1.5 - DFT
-def fft_unitary(f, dt):
-    F = np.fft.fftshift(np.fft.fft(f))
-    return F * dt / np.sqrt(2*np.pi)
-
-def ifft_unitary(F, dnu):
-    f = np.fft.ifft(np.fft.ifftshift(F))
-    return f * len(F) * dnu / np.sqrt(2*np.pi)
-
-
-
 N = len(t)
 dt = t[1] - t[0]
 dnu = 1 / (N * dt)
 
-F_fft = fft_unitary(f, dt)
-f_rec_fft = ifft_unitary(F_fft, dnu)
 
 
 nu_fft = np.fft.fftshift(np.fft.fftfreq(N, dt))
@@ -164,3 +150,88 @@ for i, p in enumerate(param_sets):
 
     print(f"Сохранено: set_{i+1}")
 
+
+
+#  пункт 1.5 - DFT
+def fft_unitary(f, dt):
+    F = np.fft.fftshift(np.fft.fft(f))
+    return F * dt / np.sqrt(2*np.pi)
+
+def ifft_unitary(F, dnu):
+    f = np.fft.ifft(np.fft.ifftshift(F))
+    return f * len(F) * dnu / np.sqrt(2*np.pi)
+
+def fft_clean(sig, dt):
+    return np.fft.fftshift(
+        np.fft.fft(np.fft.ifftshift(sig))
+    ) * dt
+def ifft_clean(F, dt):
+    return np.fft.fftshift(
+        np.fft.ifft(np.fft.ifftshift(F))
+    ) / dt
+
+F_fft = fft_unitary(f, dt)
+f_rec_fft = ifft_unitary(F_fft, dnu)
+
+def rect_f(t):
+    return np.where(np.abs(t) <= 0.5, 1.0, 0.0)
+
+T = 5
+dt = 0.01
+
+t = np.arange(-T, T, dt)
+f = pi_func(t)
+
+N = len(t)
+dnu = 1 / (N * dt)
+nu_fft = np.fft.fftshift(np.fft.fftfreq(N, dt))
+
+
+F_fft = fft_unitary(f, dt)
+f_rec_fft = ifft_unitary(F_fft, dnu)
+
+T_list = [5, 45, 15, 15, 15]
+dt_list = [0.05, 0.05, 0.05, 0.2, 0.5]
+
+for i, (T, dt) in enumerate(zip(T_list, dt_list)):
+
+    t = np.arange(-T/2, T/2, dt)
+    f = rect_f(t)
+
+    N = len(t)
+    nu = np.fft.fftshift(np.fft.fftfreq(N, dt))
+
+    # FFT
+    F = fft_clean(f, dt)
+
+    # IFFT
+    f_rec = ifft_clean(F, dt)
+
+    # аналитика (ВАЖНО: sinc)
+    F_analytic = np.sinc(nu)
+
+    # =====================
+    # СПЕКТР
+    # =====================
+    plt.figure(figsize=(12,6))
+    plt.plot(nu, np.real(F), 'g--', label="FFT")
+    plt.plot(nu, F_analytic, 'r', label="analytic sinc")
+    plt.xlabel("ν")
+    plt.ylabel("F(Π)")
+    plt.grid(alpha=0.4)
+    plt.legend()
+    plt.savefig(os.path.join(output_dir, f"1_5_set_{i+1}_spectrum.png"))
+    plt.show()
+
+    # =====================
+    # ВОССТАНОВЛЕНИЕ
+    # =====================
+    plt.figure(figsize=(12,6))
+    plt.plot(t, f, 'r', label="original")
+    plt.plot(t, np.real(f_rec), 'g--', label="FFT reconstructed")
+    plt.xlabel("t")
+    plt.ylabel("Π(t)")
+    plt.grid(alpha=0.4)
+    plt.legend()
+    plt.savefig(os.path.join(output_dir, f"1_5_set_{i+1}_reconstruction.png"))
+    plt.show()
