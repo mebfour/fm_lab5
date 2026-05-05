@@ -15,6 +15,11 @@ plt.rcParams.update({
     "figure.titlesize": 18
 })
 
+T = 5
+V = 10
+dt = 0.08
+dnu = 0.08
+
 
 # Π(t)
 def pi_func(t):
@@ -63,10 +68,7 @@ def inverse_fourier_trapz(nu, F, t):
     return np.array(f_rec) 
 
 # пример расчета
-T = 5
-V = 10
-dt = 0.08
-dnu = 0.08
+
 
 t = np.arange(-T, T + dt, dt)
 nu = np.linspace(-V, V, int(2*V/dnu) + 1)
@@ -99,7 +101,7 @@ param_sets = [
     for T, dt, V, dnu in product(T_values, dt_values, V_values, dnu_values)
 ]
 
-
+'''
 prefix = "1_3"
 
 for i, p in enumerate(param_sets):
@@ -161,7 +163,7 @@ for i, p in enumerate(param_sets):
     plt.close(fig2)  # Освобождаем память
 
     print(f"Сохранено: set_{i+1}")
-    break
+    
 
 
 for i, p in enumerate(param_sets):
@@ -190,87 +192,156 @@ for i, p in enumerate(param_sets):
     \\caption{{Восстановление сигнала}}
 \\end{{figure}}
 """)
+'''
 
-# #  пункт 1.5 - DFT
-# def fft_unitary(f, dt):
-#     F = np.fft.fftshift(np.fft.fft(f))
-#     return F * dt / np.sqrt(2*np.pi)
+#  пункт 1.5 - DFT
+def fft_unitary(f, dt):
+    return np.fft.fftshift(np.fft.fft(f)) * dt
 
-# def ifft_unitary(F, dnu):
-#     f = np.fft.ifft(np.fft.ifftshift(F))
-#     return f * len(F) * dnu / np.sqrt(2*np.pi)
-
-# def fft_clean(sig, dt):
-#     return np.fft.fftshift(
-#         np.fft.fft(np.fft.ifftshift(sig))
-#     ) * dt
-# def ifft_clean(F, dt):
-#     return np.fft.fftshift(
-#         np.fft.ifft(np.fft.ifftshift(F))
-#     ) / dt
-
-# F_fft = fft_unitary(f, dt)
-# f_rec_fft = ifft_unitary(F_fft, dnu)
-
-# def rect_f(t):
-#     return np.where(np.abs(t) <= 0.5, 1.0, 0.0)
-
-# T = 5
-# dt = 0.01
-
-# t = np.arange(-T, T, dt)
-# f = pi_func(t)
-
-# N = len(t)
-# dnu = 1 / (N * dt)
-# nu_fft = np.fft.fftshift(np.fft.fftfreq(N, dt))
+def ifft_unitary(F, dt):
+    return np.fft.ifft(np.fft.ifftshift(F)) / dt
 
 
-# F_fft = fft_unitary(f, dt)
-# f_rec_fft = ifft_unitary(F_fft, dnu)
+def rect_f(t):
+    return np.where(np.abs(t) <= 0.5, 1.0, 0.0)
 
-# T_list = [5, 45, 15, 15, 15]
-# dt_list = [0.05, 0.05, 0.05, 0.02, 0.01]
+T = 5
+dt = 0.01
+t = np.arange(-T, T + dt, dt)
+N = len(t)
+dnu = 1 / (N * dt)
+nu_fft = np.fft.fftshift(np.fft.fftfreq(N, dt))
+f = pi_func(t)
 
-# for i, (T, dt) in enumerate(zip(T_list, dt_list)):
 
-#     t = np.arange(-T/2, T/2, dt)
-#     f = rect_f(t)
+F_fft = fft_unitary(f, dt)
+f_rec_fft = ifft_unitary(F_fft, dnu)
 
-#     N = len(t)
-#     nu = np.fft.fftshift(np.fft.fftfreq(N, dt))
+T_list = [5, 45, 15, 15, 15]
+dt_list = [0.05, 0.05, 0.05, 0.02, 0.01]
+from itertools import product
 
-#     # FFT
-#     F = fft_clean(f, dt)
+T_values = [1, 5, 20]
+dt_values = [0.0001, 0.1, 0.3]
+V_values = [2, 10]
+dnu_values = [0.01, 1]
 
-#     # IFFT
-#     f_rec = ifft_clean(F, dt)
+param_sets = [
 
-#     # аналитика (ВАЖНО: sinc)
-#     F_analytic = np.sinc(nu)
+    # =========================
+    # 1. Исследование T и dt
+    # (V, dnu фиксированы)
+    # =========================
+    {"group": "time", "T": 3,  "dt": 0.3,  "V": 10, "dnu": 0.01},
+    {"group": "time", "T": 10,  "dt": 0.3,  "V": 10, "dnu": 0.01},
+    {"group": "time", "T": 3,  "dt": 0.05, "V": 10, "dnu": 0.01},
+    {"group": "time", "T": 20, "dt": 0.01, "V": 10, "dnu": 0.01},
 
-#     # =====================
-#     # СПЕКТР
-#     # =====================
-#     plt.figure(figsize=(12,6))
-#     plt.plot(nu, np.real(F), 'g--', label="FFT")
-#     plt.plot(nu, F_analytic, 'r', label="analytic sinc")
-#     plt.xlabel("ν")
-#     plt.ylabel("F(Π)")
-#     plt.grid(alpha=0.4)
-#     plt.legend()
-#     plt.savefig(os.path.join(output_dir, f"1_5_set_{i+1}_spectrum.png"))
-#     plt.show()
+    # =========================
+    # 2. Исследование V и dnu
+    # (T, dt фиксированы)
+    # =========================
+    {"group": "freq", "T": 3, "dt": 0.05, "V": 2,  "dnu": 1},
+    {"group": "freq", "T": 3, "dt": 0.05, "V": 10, "dnu": 1},
+    {"group": "freq", "T": 3, "dt": 0.05, "V": 10, "dnu": 0.1},
+    {"group": "freq", "T": 3, "dt": 0.05, "V": 20, "dnu": 0.01},
+]
 
-#     # =====================
-#     # ВОССТАНОВЛЕНИЕ
-#     # =====================
-#     plt.figure(figsize=(12,6))
-#     plt.plot(t, f, 'r', label="original")
-#     plt.plot(t, np.real(f_rec), 'g--', label="FFT reconstructed")
-#     plt.xlabel("t")
-#     plt.ylabel("Π(t)")
-#     plt.grid(alpha=0.4)
-#     plt.legend()
-#     plt.savefig(os.path.join(output_dir, f"1_5_set_{i+1}_reconstruction.png"))
-#     plt.show()
+
+for i, p in enumerate(param_sets):
+
+    T, dt, V, dnu = p["T"], p["dt"], p["V"], p["dnu"]
+    group = p["group"]
+    
+    t = np.arange(-T, T + dt, dt)
+    f = rect_f(t)
+
+    prefix = f"{group}_{i+1}"
+
+    N = len(t)
+    nu_fft = np.fft.fftshift(np.fft.fftfreq(N, dt))
+
+
+    nu_min, nu_max = nu_fft[0], nu_fft[-1]
+    F_fft = fft_unitary(f, dt)
+    f_rec = ifft_unitary(F_fft, dt)
+    
+    # Используем тот же шаг, что и у FFT
+    dnu_fft = nu_fft[1] - nu_fft[0]
+    nu_analytic = np.arange(nu_min, nu_max + dnu_fft, dnu_fft)
+    F_analytic = T * np.sinc(T * nu_analytic)
+
+
+
+    nu_dense = np.linspace(nu_min, nu_max, 1000)
+
+    F_analytic_dense = T * np.sinc(T * nu_dense)
+
+
+    plt.figure(figsize=(12, 6))
+    F_analytic_interp = np.interp(nu_fft, nu_analytic, F_analytic)
+    plt.plot(nu_dense, F_analytic_dense, label="Аналитический (sinc)")
+    plt.plot(nu_fft, np.real(F_fft), '--', label="Численный (FFT)")
+    
+    
+
+
+    plt.title(
+        f"Спектр сигнала Π(t)\n"
+        f"T = {T}, Δt = {dt}, V = {V},  Δν = {dnu}"
+    )
+
+    plt.xlabel("Частота ν")
+    plt.ylabel("Амплитуда F(ν)")
+    plt.grid(alpha=0.4)
+    plt.legend(loc="upper right")
+
+    spectrum_file = f"1_5_set_{i+1}_spectrum.png"
+    plt.savefig(os.path.join("task1/figs_1_5", spectrum_file), dpi=300)
+    plt.close()
+
+
+    # =====================
+    # ВОССТАНОВЛЕНИЕ
+    # =====================
+
+    t_fine = np.linspace(-T, T, 5000)
+    f_fine = pi_func(t_fine)
+    
+    plt.figure(figsize=(12, 6))
+
+    plt.plot(t_fine, f_fine, 'r', label="Исходный сигнал Π(t)")
+    plt.plot(t, np.real(f_rec), 'g--', label="Восстановленный (FFT)")
+
+    plt.title(
+        f"Восстановление сигнала\n"
+        f"T = {T}, Δt = {dt}, V = {V},  Δν = {dnu}"
+    )
+
+    plt.xlabel("Время t")
+    plt.ylabel("Амплитуда")
+    plt.grid(alpha=0.4)
+    plt.legend(loc="upper right")
+
+    recon_file = f"1_5_set_{i+1}_reconstruction.png"
+    plt.savefig(os.path.join("task1/figs_1_5", recon_file), dpi=300)
+    plt.close()
+
+    tex_file = os.path.join("task1/figs_1_5", f"set_{i+1}.tex")
+
+    with open(tex_file, "a", encoding="utf-8") as f:
+        f.write(f"""
+    \\subsection*{{Параметры: $T={T}$, $\\Delta t={dt}$, $V={V}$, $\\Delta \\nu={dnu}$}}
+
+    \\begin{{figure}}[H]
+        \\centering
+        \\includegraphics[width=0.8\\textwidth]{{task1/figs_1_5/{spectrum_file}}}
+        \\caption{{Спектр сигнала $\\Pi(t)$ (численный FFT и аналитический sinc)}}
+    \\end{{figure}}
+
+    \\begin{{figure}}[H]
+        \\centering
+        \\includegraphics[width=0.8\\textwidth]{{task1/figs_1_5/{recon_file}}}
+        \\caption{{Восстановление сигнала $\\Pi(t)$ методом FFT}}
+    \\end{{figure}}
+    """)

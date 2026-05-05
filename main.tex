@@ -349,103 +349,17 @@ f(t) = \int_{-\infty}^{\infty} F(\nu), e^{i 2\pi \nu t} , d\nu.
 где $\nu_{\max}$ — максимальная значимая частота в спектре сигнала.
 
 Таким образом, точность восстановления определяется компромиссом между параметрами $(\Delta t)$, $(T)$ и $(V)$: уменьшение шага повышает точность интегрирования, увеличение интервала снижает краевые эффекты, а расширение спектрального диапазона улучшает восстановление формы сигнала.
-
-\subsubsection{Набор 1: $T=5$, $\Delta t=0.05$}
-
-\begin{figure}[H]
-\centering
-\begin{subfigure}{0.48\textwidth}
-\includegraphics[width=\textwidth]{task1/figures/1_5_set_1_spectrum.png}
-\caption{Спектр}
-\end{subfigure}
-\hfill
-\begin{subfigure}{0.48\textwidth}
-\includegraphics[width=\textwidth]{task1/figures/1_5_set_1_reconstruction.png}
-\caption{Восстановление}
-\end{subfigure}
-\end{figure}
-
-Наблюдаются значительные искажения спектра и восстановленной функции. Причина заключается в относительно крупном шаге дискретизации $\Delta t$, что приводит к недостаточной точности представления сигнала.
-
-Кроме того, малый временной интервал $T$ ограничивает частотное разрешение, из-за чего спектр становится менее гладким и отклоняется от аналитического $\mathrm{sinc}$-образа.
-
-
-\subsubsection{Набор 2: $T=45$, $\Delta t=0.05$}
-
-\begin{figure}[H]
-\centering
-\begin{subfigure}{0.48\textwidth}
-\includegraphics[width=\textwidth]{task1/figures/1_5_set_2_spectrum.png}
-\caption{Спектр}
-\end{subfigure}
-\hfill
-\begin{subfigure}{0.48\textwidth}
-\includegraphics[width=\textwidth]{task1/figures/1_5_set_2_reconstruction.png}
-\caption{Восстановление}
-\end{subfigure}
-\end{figure}
-
-Увеличение интервала $T$ приводит к улучшению частотного разрешения, что делает спектр более близким к аналитическому виду.
-
-Однако эффект усечения сигнала на конечном интервале приводит к появлению спектральной утечки, что вызывает небольшие искажения в области боковых лепестков.
-
-\subsubsection{Набор 3: $T=15$, $\Delta t=0.05$}
-
-\begin{figure}[H]
-\centering
-\begin{subfigure}{0.48\textwidth}
-\includegraphics[width=\textwidth]{task1/figures/1_5_set_3_spectrum.png}
-\caption{Спектр}
-\end{subfigure}
-\hfill
-\begin{subfigure}{0.48\textwidth}
-\includegraphics[width=\textwidth]{task1/figures/1_5_set_3_reconstruction.png}
-\caption{Восстановление}
-\end{subfigure}
-\end{figure}
-
-Данный случай является более сбалансированным. Спектр лучше соответствует аналитическому $\mathrm{sinc}$-образу, а восстановление функции становится более устойчивым.
-
-Тем не менее, наблюдаются небольшие отклонения, связанные с дискретизацией по времени.
-
-\subsubsection{Набор 4: $T=15$, $\Delta t=0.1$}
-
-\begin{figure}[H]
-\centering
-\begin{subfigure}{0.48\textwidth}
-\includegraphics[width=\textwidth]{task1/figures/1_5_set_4_spectrum.png}
-\caption{Спектр}
-\end{subfigure}
-\hfill
-\begin{subfigure}{0.48\textwidth}
-\includegraphics[width=\textwidth]{task1/figures/1_5_set_4_reconstruction.png}
-\caption{Восстановление}
-\end{subfigure}
-\end{figure}
-
-Увеличение шага дискретизации $\Delta t$ приводит к ухудшению качества спектра. Наблюдаются искажения формы $\mathrm{sinc}$ и усиление шумоподобных артефактов.
-
-Восстановленная функция становится менее точной, особенно на границах разрыва.
-
-\subsubsection{Набор 5: $T=15$, $\Delta t=0.03$}
-
-\begin{figure}[H]
-\centering
-\begin{subfigure}{0.48\textwidth}
-\includegraphics[width=\textwidth]{task1/figures/1_5_set_5_spectrum.png}
-\caption{Спектр}
-\end{subfigure}
-\hfill
-\begin{subfigure}{0.48\textwidth}
-\includegraphics[width=\textwidth]{task1/figures/1_5_set_5_reconstruction.png}
-\caption{Восстановление}
-\end{subfigure}
-\end{figure}
-
-В данном случае достигается наилучшее качество среди рассмотренных параметров. Малый шаг $\Delta t$ обеспечивает высокую точность дискретного преобразования Фурье.
-
-Спектр практически полностью совпадает с аналитическим $\mathrm{sinc}$-образом, а восстановленная функция близка к исходной $\Pi(t)$.
-
+\input{task1/figs_1_5/set_1.tex}
+FFT будет имеет грубую дискретизацию, заметные отклонения от аналитического решения.
+\input{task1/figs_1_5/set_2.tex}
+Этот набор лучше, чем 1 — T увеличен. Разрешение улучшается. 
+\input{task1/figs_1_5/set_3.tex}
+Этот набор так же лучше 1 - $\Delta t$ дает более хорошую точность. Далее рассмотрим улучшенные комбинации этих параметров.
+\input{task1/figs_1_5/set_4.tex}
+% \input{task1/figs_1_5/set_5.tex}
+% \input{task1/figs_1_5/set_6.tex}
+% \input{task1/figs_1_5/set_7.tex}
+% \input{task1/figs_1_5/set_8.tex}
 \subsection{Анализ}
 
 
