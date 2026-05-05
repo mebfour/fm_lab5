@@ -1,7 +1,6 @@
 import numpy as np
 import matplotlib
 
-# Чтобы код нормально работал в WSL без открытия окон
 matplotlib.use("Agg")
 
 import matplotlib.pyplot as plt
@@ -14,6 +13,22 @@ from pathlib import Path
 
 FIGURES_DIR = Path.cwd() / "figures"
 FIGURES_DIR.mkdir(exist_ok=True)
+
+
+# ============================================================
+# ЕДИНЫЙ СТИЛЬ ГРАФИКОВ
+# ============================================================
+
+plt.rcParams.update({
+    "font.size": 15,
+    "axes.labelsize": 15,
+    "legend.fontsize": 13,
+    "xtick.labelsize": 13,
+    "ytick.labelsize": 13,
+    "lines.linewidth": 2,
+    "axes.grid": True,
+    "grid.alpha": 0.35,
+})
 
 
 def save_figure(filename):
@@ -48,26 +63,32 @@ def y2_func(t):
 B_y1 = max(w1, w2) / (2 * np.pi)
 B_y2 = b / 2
 
-print("=== Параметры y1(t) ===")
-print(f"y1(t) = {a1} sin({w1}t + {phi1}) + {a2} sin({w2}t + pi/2)")
-print(f"B_y1 = {B_y1:.4f}")
-print(f"2B_y1 = {2 * B_y1:.4f}")
-print(f"Условие Найквиста: fs > {2 * B_y1:.4f}")
-print(f"То есть Ts < {1 / (2 * B_y1):.4f}")
+dt_limit_y1 = 1 / (2 * B_y1)
+dt_limit_y2 = 1 / (2 * B_y2)
+
+
+print("=== Параметры функции y1(t) ===")
+print(f"y1(t) = {a1} sin({w1}t) + {a2} sin({w2}t + pi/2)")
+print(f"B1 = {B_y1:.4f}")
+print(f"Предельный шаг по теореме Котельникова: Δt < {dt_limit_y1:.4f}")
 print()
 
-print("=== Параметры y2(t) ===")
+print("=== Параметры функции y2(t) ===")
 print(f"y2(t) = sinc({b}t)")
-print(f"B_y2 = {B_y2:.4f}")
-print(f"2B_y2 = {2 * B_y2:.4f}")
-print(f"Условие Найквиста: fs > {2 * B_y2:.4f}")
-print(f"То есть Ts < {1 / (2 * B_y2):.4f}")
+print(f"B2 = {B_y2:.4f}")
+print(f"Предельный шаг по теореме Котельникова: Δt < {dt_limit_y2:.4f}")
 print()
 
 
 # ============================================================
 # ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
 # ============================================================
+
+def make_time_grid(T, dt):
+    k_max = int(np.floor((T / 2) / dt))
+    k = np.arange(-k_max, k_max + 1)
+    return k * dt
+
 
 def reconstruct_sinc(t_dense, t_samples, y_samples, Ts):
     result = np.zeros_like(t_dense, dtype=float)
@@ -79,231 +100,505 @@ def reconstruct_sinc(t_dense, t_samples, y_samples, Ts):
 
 
 def smart_fft(y, dt):
+    """
+    Приближение непрерывного Фурье-образа через FFT:
+        F(ν) ≈ Δt * FFT(y)
+    """
     return dt * np.fft.fftshift(np.fft.fft(np.fft.ifftshift(y)))
 
 
-def frequency_grid(N, T):
-    return np.arange(-N / 2, N / 2) * (1 / T)
+def frequency_grid(N, dt):
+    return np.fft.fftshift(np.fft.fftfreq(N, d=dt))
 
 
-def normalized_abs(Y):
-    Y_abs = np.abs(Y)
-    max_val = np.max(Y_abs)
+def spectrum_part(y, dt, part="real"):
+    Y = smart_fft(y, dt)
+    nu = frequency_grid(len(y), dt)
 
-    if max_val == 0:
-        return Y_abs
+    if part == "real":
+        return nu, Y.real
 
-    return Y_abs / max_val
+    if part == "imag":
+        return nu, Y.imag
+
+    raise ValueError("part должен быть 'real' или 'imag'")
 
 
-# ============================================================
-# ОБЩИЕ НАСТРОЙКИ МОДЕЛИРОВАНИЯ
-# ============================================================
-
-T = 40
-dt_cont = 0.001
-
-t_cont = np.arange(-T / 2, T / 2, dt_cont)
-N_cont = len(t_cont)
-nu_cont = frequency_grid(N_cont, T)
-
-plot_window_y1 = 8
-plot_window_y2 = 8
-
-Ts_values_y1 = [0.1, 0.3, 0.6]
-Ts_values_y2 = [0.05, 0.2, 0.4]
+def add_case_label(ax, text):
+    ax.text(
+        0.02,
+        0.92,
+        text,
+        transform=ax.transAxes,
+        fontsize=13,
+        verticalalignment="top",
+        bbox=dict(facecolor="white", edgecolor="0.7", alpha=0.9),
+    )
 
 
 # ============================================================
 # ИСХОДНЫЕ ФУНКЦИИ
 # ============================================================
 
-y1_cont = y1_func(t_cont)
-y2_cont = y2_func(t_cont)
-
-plt.figure(figsize=(10, 5))
-plt.plot(t_cont, y1_cont, linewidth=2)
-plt.grid()
-plt.xlim(-plot_window_y1, plot_window_y1)
-plt.xlabel("t")
-plt.ylabel("y1(t)")
-save_figure("01_y1_original.png")
-
-plt.figure(figsize=(10, 5))
-plt.plot(t_cont, y2_cont, linewidth=2)
-plt.grid()
-plt.xlim(-plot_window_y2, plot_window_y2)
-plt.xlabel("t")
-plt.ylabel("y2(t)")
-save_figure("02_y2_original.png")
-
-
-# ============================================================
-# СЭМПЛИРОВАНИЕ И ВОССТАНОВЛЕНИЕ y1(t)
-# ============================================================
-
-for Ts in Ts_values_y1:
-    t_samples = np.arange(-T / 2, T / 2, Ts)
-    y_samples = y1_func(t_samples)
-
-    y_rec = reconstruct_sinc(t_cont, t_samples, y_samples, Ts)
+def plot_original_function(func, T, dt_dense, xlim, ylabel, filename):
+    t_dense = make_time_grid(T, dt_dense)
+    y_dense = func(t_dense)
 
     plt.figure(figsize=(10, 5))
-    plt.plot(t_cont, y1_cont, linewidth=2, label="Исходная")
-    plt.stem(
-        t_samples,
-        y_samples,
-        linefmt="C1-",
-        markerfmt="C1o",
-        basefmt="C1-",
-        label="Сэмплы",
-    )
-    plt.plot(t_cont, y_rec, "--", linewidth=1.5, label="Восстановленная")
-    plt.grid()
-    plt.xlim(-plot_window_y1, plot_window_y1)
-    plt.xlabel("t")
-    plt.ylabel("y1(t)")
-    plt.legend()
-
-    filename = f"03_y1_sampling_Ts_{str(Ts).replace('.', '_')}.png"
+    plt.plot(t_dense, y_dense, label="Исходная функция")
+    plt.xlim(-xlim, xlim)
+    plt.xlabel("Время $t$")
+    plt.ylabel(ylabel)
+    plt.legend(loc="upper right")
     save_figure(filename)
 
 
 # ============================================================
-# СЭМПЛИРОВАНИЕ И ВОССТАНОВЛЕНИЕ y2(t)
+# ВОССТАНОВЛЕНИЕ ПО Δt
 # ============================================================
 
-for Ts in Ts_values_y2:
-    t_samples = np.arange(-T / 2, T / 2, Ts)
-    y_samples = y2_func(t_samples)
+def plot_reconstruction_by_dt(
+    func,
+    T,
+    dt_dense,
+    dt_values,
+    xlim,
+    ylabel,
+    filename,
+):
+    t_dense = make_time_grid(T, dt_dense)
+    y_dense = func(t_dense)
 
-    y_rec = reconstruct_sinc(t_cont, t_samples, y_samples, Ts)
-
-    plt.figure(figsize=(10, 5))
-    plt.plot(t_cont, y2_cont, linewidth=2, label="Исходная")
-    plt.stem(
-        t_samples,
-        y_samples,
-        linefmt="C1-",
-        markerfmt="C1o",
-        basefmt="C1-",
-        label="Сэмплы",
+    fig, axes = plt.subplots(
+        len(dt_values),
+        1,
+        figsize=(11, 11),
+        sharex=True,
     )
-    plt.plot(t_cont, y_rec, "--", linewidth=1.5, label="Восстановленная")
-    plt.grid()
-    plt.xlim(-plot_window_y2, plot_window_y2)
-    plt.xlabel("t")
-    plt.ylabel("y2(t)")
-    plt.legend()
 
-    filename = f"04_y2_sampling_Ts_{str(Ts).replace('.', '_')}.png"
+    for i, (ax, Ts) in enumerate(zip(axes, dt_values)):
+        t_samples = make_time_grid(T, Ts)
+        y_samples = func(t_samples)
+        y_rec = reconstruct_sinc(t_dense, t_samples, y_samples, Ts)
+
+        ax.plot(t_dense, y_dense, label="Исходная функция")
+        ax.plot(t_dense, y_rec, "--", label="Восстановленная функция")
+        ax.scatter(
+            t_samples,
+            y_samples,
+            color="C2",
+            s=30,
+            label="Сэмплы",
+        )
+
+        ax.set_xlim(-xlim, xlim)
+        ax.set_ylabel(ylabel)
+        add_case_label(ax, rf"$\Delta t = {Ts}$")
+
+        if i == 0:
+            ax.legend(loc="upper right")
+
+    axes[-1].set_xlabel("Время $t$")
     save_figure(filename)
 
 
 # ============================================================
-# СПЕКТРЫ y1(t)
+# ВОССТАНОВЛЕНИЕ ПО T
 # ============================================================
 
-Y1_cont = smart_fft(y1_cont, dt_cont)
-
-for Ts in Ts_values_y1:
-    t_samples = np.arange(-T / 2, T / 2, Ts)
-    y_samples = y1_func(t_samples)
-
-    y_rec = reconstruct_sinc(t_cont, t_samples, y_samples, Ts)
-
-    Y1_rec = smart_fft(y_rec, dt_cont)
-
-    N_samples = len(t_samples)
-    nu_samples = frequency_grid(N_samples, T)
-    Y1_samples = smart_fft(y_samples, Ts)
-
-    plt.figure(figsize=(10, 5))
-    plt.plot(
-        nu_cont,
-        normalized_abs(Y1_cont),
-        linewidth=2,
-        label="Исходная",
-    )
-    plt.plot(
-        nu_cont,
-        normalized_abs(Y1_rec),
-        "--",
-        linewidth=1.5,
-        label="Восстановленная",
-    )
-    plt.plot(
-        nu_samples,
-        normalized_abs(Y1_samples),
-        ":",
-        linewidth=1.5,
-        label="Сэмплированная",
+def plot_reconstruction_by_T(
+    func,
+    T_values,
+    dt_dense,
+    Ts,
+    xlim,
+    ylabel,
+    filename,
+):
+    fig, axes = plt.subplots(
+        len(T_values),
+        1,
+        figsize=(11, 11),
+        sharex=True,
     )
 
-    plt.axvline(B_y1, linestyle=":", color="black", label="B")
-    plt.axvline(-B_y1, linestyle=":", color="black")
+    for i, (ax, T) in enumerate(zip(axes, T_values)):
+        t_dense = make_time_grid(T, dt_dense)
+        y_dense = func(t_dense)
 
-    plt.grid()
-    plt.xlim(-8, 8)
-    plt.xlabel("ν")
-    plt.ylabel("Нормированная амплитуда")
-    plt.legend()
+        t_samples = make_time_grid(T, Ts)
+        y_samples = func(t_samples)
+        y_rec = reconstruct_sinc(t_dense, t_samples, y_samples, Ts)
 
-    filename = f"05_y1_spectrum_Ts_{str(Ts).replace('.', '_')}.png"
+        ax.plot(t_dense, y_dense, label="Исходная функция")
+        ax.plot(t_dense, y_rec, "--", label="Восстановленная функция")
+        ax.scatter(
+            t_samples,
+            y_samples,
+            color="C2",
+            s=30,
+            label="Сэмплы",
+        )
+
+        ax.set_xlim(-xlim, xlim)
+        ax.set_ylabel(ylabel)
+        add_case_label(ax, rf"$T = {T}$, $\Delta \nu = {1 / T:.3f}$")
+
+        if i == 0:
+            ax.legend(loc="upper right")
+
+    axes[-1].set_xlabel("Время $t$")
     save_figure(filename)
 
 
 # ============================================================
-# СПЕКТРЫ y2(t)
+# ФУРЬЕ-ОБРАЗЫ ПО Δt
 # ============================================================
 
-Y2_cont = smart_fft(y2_cont, dt_cont)
+def plot_spectrum_by_dt(
+    func,
+    T,
+    dt_dense,
+    dt_values,
+    B,
+    xlim_nu,
+    filename,
+    part="real",
+):
+    t_dense = make_time_grid(T, dt_dense)
+    y_dense = func(t_dense)
 
-for Ts in Ts_values_y2:
-    t_samples = np.arange(-T / 2, T / 2, Ts)
-    y_samples = y2_func(t_samples)
+    nu_dense, Y_dense = spectrum_part(y_dense, dt_dense, part=part)
 
-    y_rec = reconstruct_sinc(t_cont, t_samples, y_samples, Ts)
-
-    Y2_rec = smart_fft(y_rec, dt_cont)
-
-    N_samples = len(t_samples)
-    nu_samples = frequency_grid(N_samples, T)
-    Y2_samples = smart_fft(y_samples, Ts)
-
-    plt.figure(figsize=(10, 5))
-    plt.plot(
-        nu_cont,
-        normalized_abs(Y2_cont),
-        linewidth=2,
-        label="Исходная",
-    )
-    plt.plot(
-        nu_cont,
-        normalized_abs(Y2_rec),
-        "--",
-        linewidth=1.5,
-        label="Восстановленная",
-    )
-    plt.plot(
-        nu_samples,
-        normalized_abs(Y2_samples),
-        ":",
-        linewidth=1.5,
-        label="Сэмплированная",
+    fig, axes = plt.subplots(
+        len(dt_values),
+        1,
+        figsize=(11, 11),
+        sharex=True,
     )
 
-    plt.axvline(B_y2, linestyle=":", color="black", label="B")
-    plt.axvline(-B_y2, linestyle=":", color="black")
+    for i, (ax, Ts) in enumerate(zip(axes, dt_values)):
+        t_samples = make_time_grid(T, Ts)
+        y_samples = func(t_samples)
+        y_rec = reconstruct_sinc(t_dense, t_samples, y_samples, Ts)
 
-    plt.grid()
-    plt.xlim(-8, 8)
-    plt.xlabel("ν")
-    plt.ylabel("Нормированная амплитуда")
-    plt.legend()
+        nu_rec, Y_rec = spectrum_part(y_rec, dt_dense, part=part)
+        nu_samples, Y_samples = spectrum_part(y_samples, Ts, part=part)
 
-    filename = f"06_y2_spectrum_Ts_{str(Ts).replace('.', '_')}.png"
+        ax.plot(nu_dense, Y_dense, label="Исходная функция")
+        ax.plot(nu_rec, Y_rec, "--", label="Восстановленная функция")
+        ax.scatter(
+            nu_samples,
+            Y_samples,
+            color="g",
+            s=10,
+            label="Сэмплированная функция",
+        )
+        ax.axvline(B, linestyle=":", color="black")
+        ax.axvline(-B, linestyle=":", color="black")
+
+        ax.set_xlim(-xlim_nu, xlim_nu)
+
+        if part == "real":
+            ax.set_ylabel(r"$\mathrm{Re}\,\hat{y}(\nu)$")
+        else:
+            ax.set_ylabel(r"$\mathrm{Im}\,\hat{y}(\nu)$")
+
+        add_case_label(ax, rf"$\Delta t = {Ts}$")
+
+        if i == 0:
+            ax.legend(loc="upper right")
+
+    axes[-1].set_xlabel("Частота ν")
     save_figure(filename)
+
+
+# ============================================================
+# ФУРЬЕ-ОБРАЗЫ ПО T
+# ============================================================
+
+def plot_spectrum_by_T(
+    func,
+    T_values,
+    dt_dense,
+    Ts,
+    B,
+    xlim_nu,
+    filename,
+    part="real",
+):
+    fig, axes = plt.subplots(
+        len(T_values),
+        1,
+        figsize=(11, 11),
+        sharex=True,
+    )
+
+    for i, (ax, T) in enumerate(zip(axes, T_values)):
+        t_dense = make_time_grid(T, dt_dense)
+        y_dense = func(t_dense)
+
+        t_samples = make_time_grid(T, Ts)
+        y_samples = func(t_samples)
+        y_rec = reconstruct_sinc(t_dense, t_samples, y_samples, Ts)
+
+        nu_dense, Y_dense = spectrum_part(y_dense, dt_dense, part=part)
+        nu_rec, Y_rec = spectrum_part(y_rec, dt_dense, part=part)
+        nu_samples, Y_samples = spectrum_part(y_samples, Ts, part=part)
+
+        ax.plot(nu_dense, Y_dense, label="Исходная функция")
+        ax.plot(nu_rec, Y_rec, "--", label="Восстановленная функция")
+        ax.scatter(
+            nu_samples,
+            Y_samples,
+            color="g",
+            s=10,
+            label="Сэмплированная функция",
+        )
+        ax.axvline(B, linestyle=":", color="black")
+        ax.axvline(-B, linestyle=":", color="black")
+
+        ax.set_xlim(-xlim_nu, xlim_nu)
+
+        if part == "real":
+            ax.set_ylabel(r"$\mathrm{Re}\,\hat{y}(\nu)$")
+        else:
+            ax.set_ylabel(r"$\mathrm{Im}\,\hat{y}(\nu)$")
+
+        add_case_label(ax, rf"$T = {T}$, $\Delta \nu = {1 / T:.3f}$")
+
+        if i == 0:
+            ax.legend(loc="upper right")
+
+    axes[-1].set_xlabel("Частота ν")
+    save_figure(filename)
+
+
+# ============================================================
+# ОБЩИЕ ПАРАМЕТРЫ ЭКСПЕРИМЕНТОВ
+# ============================================================
+
+dt_dense = 0.001
+
+T_for_dt_study = 40
+T_values_for_T_study = [3, 7, 23]
+
+dt_values_y1 = [0.1, 0.3, 0.6]
+dt_values_y2 = [0.05, 0.2, 0.4]
+
+dt_good_y1 = 0.3
+dt_bad_y1 = 0.6
+
+dt_good_y2 = 0.2
+dt_bad_y2 = 0.4
+
+plot_window_y1 = 8
+plot_window_y2 = 8
+
+spectrum_window_y1 = 3
+spectrum_window_y2 = 6
+
+
+# ============================================================
+# ИСХОДНЫЕ ФУНКЦИИ
+# ============================================================
+
+plot_original_function(
+    func=y1_func,
+    T=40,
+    dt_dense=dt_dense,
+    xlim=plot_window_y1,
+    ylabel="$y_1(t)$",
+    filename="01_y1_original.png",
+)
+
+plot_original_function(
+    func=y2_func,
+    T=40,
+    dt_dense=dt_dense,
+    xlim=plot_window_y2,
+    ylabel="$y_2(t)$",
+    filename="02_y2_original.png",
+)
+
+
+# ============================================================
+# y1(t): ВЛИЯНИЕ Δt ПРИ T = 40
+# ============================================================
+
+plot_reconstruction_by_dt(
+    func=y1_func,
+    T=T_for_dt_study,
+    dt_dense=dt_dense,
+    dt_values=dt_values_y1,
+    xlim=plot_window_y1,
+    ylabel="$y_1(t)$",
+    filename="03_y1_reconstruction_by_dt.png",
+)
+
+plot_spectrum_by_dt(
+    func=y1_func,
+    T=T_for_dt_study,
+    dt_dense=dt_dense,
+    dt_values=dt_values_y1,
+    B=B_y1,
+    xlim_nu=spectrum_window_y1,
+    filename="04_y1_spectrum_by_dt_real.png",
+    part="real",
+)
+
+plot_spectrum_by_dt(
+    func=y1_func,
+    T=T_for_dt_study,
+    dt_dense=dt_dense,
+    dt_values=dt_values_y1,
+    B=B_y1,
+    xlim_nu=spectrum_window_y1,
+    filename="04b_y1_spectrum_by_dt_imag.png",
+    part="imag",
+)
+
+
+# ============================================================
+# y1(t): ВЛИЯНИЕ T ПРИ ХОРОШЕМ И ПЛОХОМ Δt
+# ============================================================
+
+plot_reconstruction_by_T(
+    func=y1_func,
+    T_values=T_values_for_T_study,
+    dt_dense=dt_dense,
+    Ts=dt_good_y1,
+    xlim=plot_window_y1,
+    ylabel="$y_1(t)$",
+    filename="05_y1_reconstruction_by_T_good_dt.png",
+)
+
+plot_spectrum_by_T(
+    func=y1_func,
+    T_values=T_values_for_T_study,
+    dt_dense=dt_dense,
+    Ts=dt_good_y1,
+    B=B_y1,
+    xlim_nu=spectrum_window_y1,
+    filename="06_y1_spectrum_by_T_good_dt_real.png",
+    part="real",
+)
+
+plot_spectrum_by_T(
+    func=y1_func,
+    T_values=T_values_for_T_study,
+    dt_dense=dt_dense,
+    Ts=dt_good_y1,
+    B=B_y1,
+    xlim_nu=spectrum_window_y1,
+    filename="06b_y1_spectrum_by_T_good_dt_imag.png",
+    part="imag",
+)
+
+plot_reconstruction_by_T(
+    func=y1_func,
+    T_values=T_values_for_T_study,
+    dt_dense=dt_dense,
+    Ts=dt_bad_y1,
+    xlim=plot_window_y1,
+    ylabel="$y_1(t)$",
+    filename="07_y1_reconstruction_by_T_bad_dt.png",
+)
+
+plot_spectrum_by_T(
+    func=y1_func,
+    T_values=T_values_for_T_study,
+    dt_dense=dt_dense,
+    Ts=dt_bad_y1,
+    B=B_y1,
+    xlim_nu=spectrum_window_y1,
+    filename="08_y1_spectrum_by_T_bad_dt_real.png",
+    part="real",
+)
+
+plot_spectrum_by_T(
+    func=y1_func,
+    T_values=T_values_for_T_study,
+    dt_dense=dt_dense,
+    Ts=dt_bad_y1,
+    B=B_y1,
+    xlim_nu=spectrum_window_y1,
+    filename="08b_y1_spectrum_by_T_bad_dt_imag.png",
+    part="imag",
+)
+
+
+# ============================================================
+# y2(t): ВЛИЯНИЕ Δt ПРИ T = 40
+# ============================================================
+
+plot_reconstruction_by_dt(
+    func=y2_func,
+    T=T_for_dt_study,
+    dt_dense=dt_dense,
+    dt_values=dt_values_y2,
+    xlim=plot_window_y2,
+    ylabel="$y_2(t)$",
+    filename="09_y2_reconstruction_by_dt.png",
+)
+
+plot_spectrum_by_dt(
+    func=y2_func,
+    T=T_for_dt_study,
+    dt_dense=dt_dense,
+    dt_values=dt_values_y2,
+    B=B_y2,
+    xlim_nu=spectrum_window_y2,
+    filename="10_y2_spectrum_by_dt_real.png",
+    part="real",
+)
+
+
+# ============================================================
+# y2(t): ВЛИЯНИЕ T ПРИ ХОРОШЕМ И ПЛОХОМ Δt
+# ============================================================
+
+plot_reconstruction_by_T(
+    func=y2_func,
+    T_values=T_values_for_T_study,
+    dt_dense=dt_dense,
+    Ts=dt_good_y2,
+    xlim=plot_window_y2,
+    ylabel="$y_2(t)$",
+    filename="11_y2_reconstruction_by_T_good_dt.png",
+)
+
+plot_spectrum_by_T(
+    func=y2_func,
+    T_values=T_values_for_T_study,
+    dt_dense=dt_dense,
+    Ts=dt_good_y2,
+    B=B_y2,
+    xlim_nu=spectrum_window_y2,
+    filename="12_y2_spectrum_by_T_good_dt_real.png",
+    part="real",
+)
+
+plot_reconstruction_by_T(
+    func=y2_func,
+    T_values=T_values_for_T_study,
+    dt_dense=dt_dense,
+    Ts=dt_bad_y2,
+    xlim=plot_window_y2,
+    ylabel="$y_2(t)$",
+    filename="13_y2_reconstruction_by_T_bad_dt.png",
+)
+
+plot_spectrum_by_T(
+    func=y2_func,
+    T_values=T_values_for_T_study,
+    dt_dense=dt_dense,
+    Ts=dt_bad_y2,
+    B=B_y2,
+    xlim_nu=spectrum_window_y2,
+    filename="14_y2_spectrum_by_T_bad_dt_real.png",
+    part="real",
+)
 
 
 print()
