@@ -6,13 +6,13 @@ output_dir = "task1/figures"
 
 # Настройка шрифтов
 plt.rcParams.update({
-    "font.size": 16,          # базовый размер
-    "axes.titlesize": 18,     # заголовок графика
-    "axes.labelsize": 16,     # подписи осей
-    "xtick.labelsize": 14,    # подписи X
-    "ytick.labelsize": 14,    # подписи Y
-    "legend.fontsize": 16,    
-    "figure.titlesize": 18
+    "font.size": 18,          # базовый размер
+    "axes.titlesize": 20,     # заголовок графика
+    "axes.labelsize": 18,     # подписи осей
+    "xtick.labelsize": 16,    # подписи X
+    "ytick.labelsize": 16,    # подписи Y
+    "legend.fontsize": 18,    
+    "figure.titlesize": 20
 })
 
 T = 5
@@ -108,7 +108,7 @@ param_sets = [
 prefix = "1_3"
 
 for i, p in enumerate(param_sets):
-    break
+    
     if i in [0, 3,5, 12,14, 15,17,18,19,24,25,27,29,30,31,34]:
         continue  # Выбираем 6 наборов для графиков
     t_fine = np.linspace(-T, T, 5000)
@@ -176,7 +176,7 @@ for i, p in enumerate(param_sets):
 # КОД ДЛЯ КРИВЫХ ПАРАМЕТРОВ И ВСТАВКИ В TEX
 
 def figs_1_3(T, dt, V, dnu, i):
-    t_fine = np.linspace(-1, 1, 5000)
+    t_fine = np.linspace(-T, T, 5000)
     f_fine = pi_func(t_fine)
     T, dt, V, dnu = p["T"], p["dt"], p["V"], p["dnu"]
 
@@ -235,7 +235,7 @@ def figs_1_3(T, dt, V, dnu, i):
 
     print(f"Сохранено: 1_3_set_{i+1}")
 
-#figs_1_3(1,0.0001,2,0.01,0) #1
+figs_1_3(1,0.0001,2,0.01,0) #1
 #figs_1_3(5,0.0001,2,0.01,12) #13
 
 
