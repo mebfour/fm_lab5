@@ -141,8 +141,8 @@ def sinc_interpolate(ts, ys, t_dense, dt_sample):
 
 
 def plot_compare_time(t_true, y_true, t_num, y_num, title, filename,
-                      label_true="Исходная функция",
-                      label_num="Восстановленная функция",
+                      label_true="Исходный сигнал Π(t)",
+                      label_num="Восстановленный сигнал",
                       xlim=None):
     plt.figure()
     plt.plot(t_true, np.real(y_true), linewidth=2, label=label_true)
@@ -159,13 +159,13 @@ def plot_compare_time(t_true, y_true, t_num, y_num, title, filename,
 
 
 def plot_compare_freq(v_ref, F_ref, v_num, F_num, title, filename,
-                      label_num="Численный образ", xlim=None):
+                      label_num="Численный (trapz)", xlim=None):
     plt.figure()
-    plt.plot(v_ref, np.real(F_ref), linewidth=2.2, label="Аналитический образ")
+    plt.plot(v_ref, np.real(F_ref), linewidth=2.2, label="Аналитический (sinc)")
     plt.plot(v_num, np.real(F_num), "--", linewidth=1.8, label=label_num)
     plt.grid(True)
     plt.xlabel("Частота ν")
-    plt.ylabel("Значение образа")
+    plt.ylabel("Амлитуда")
     plt.title(title)
     if xlim is not None:
         plt.xlim(xlim)
@@ -289,11 +289,16 @@ def section_3_dft():
 
     # Неудачный случай по T
     T = 2.0
-    dt = 0.001
+    dt = 0.01
     t = make_time_grid(T, dt)
     x = pi_func(t)
     v_dft, _ = make_centered_freq_grid(len(t), dt)
-    X = np.fft.fftshift(dft_unitary_raw(x))
+    X = np.fft.fftshift(
+        np.fft.fft(
+            np.fft.ifftshift(x),
+            norm='ortho'
+        )
+    )
 
     plot_dft_spectrum(
         v_ref, F_ref, v_dft, X,
@@ -303,12 +308,17 @@ def section_3_dft():
     )
 
     # Удачный случай по T
-    T = 8.0
-    dt = 0.001
+    T = 10.0
+    dt = 0.01
     t = make_time_grid(T, dt)
     x = pi_func(t)
     v_dft, _ = make_centered_freq_grid(len(t), dt)
-    X = np.fft.fftshift(dft_unitary_raw(x))
+    X = np.fft.fftshift(
+        np.fft.fft(
+            np.fft.ifftshift(x),
+            norm='ortho'
+        )
+    )
 
     plot_dft_spectrum(
         v_ref, F_ref, v_dft, X,
@@ -318,24 +328,28 @@ def section_3_dft():
     )
 
     # Неудачный случай по dt: восстановление
-    T = 8.0
+    T = 10.0
     dt = 0.1
     t = make_time_grid(T, dt)
     x = pi_func(t)
     X_raw = dft_unitary_raw(x)
     x_rec = idft_unitary_raw(X_raw)
 
+    t_dense = np.linspace(-4, 4, 4000)
+    x_dense = pi_func(t_dense)
+
     plot_compare_time(
-        t, x, t, x_rec,
+        t_dense, x_dense,
+        t, x_rec.real,
         "IDFT: большой параметр dt",
         "dft_bad_dt_reconstruction.png",
-        label_true="Исходная функция",
-        label_num="Восстановленная функция",
+        label_true="Аналитическая Π(t)",
+        label_num="Восстановление IDFT",
         xlim=(-4, 4)
     )
 
     # Удачный случай по dt: восстановление
-    T = 8.0
+    T = 10.0
     dt = 0.001
     t = make_time_grid(T, dt)
     x = pi_func(t)
