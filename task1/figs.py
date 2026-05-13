@@ -108,7 +108,7 @@ param_sets = [
 prefix = "1_3"
 
 for i, p in enumerate(param_sets):
-    
+    break
     if i in [0, 3,5, 12,14, 15,17,18,19,24,25,27,29,30,31,34]:
         continue  # Выбираем 6 наборов для графиков
     t_fine = np.linspace(-T, T, 5000)
