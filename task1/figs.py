@@ -6,13 +6,12 @@ output_dir = "task1/figures"
 
 # Настройка шрифтов
 plt.rcParams.update({
-    "font.size": 18,          # базовый размер
-    "axes.titlesize": 20,     # заголовок графика
-    "axes.labelsize": 18,     # подписи осей
-    "xtick.labelsize": 16,    # подписи X
-    "ytick.labelsize": 16,    # подписи Y
-    "legend.fontsize": 18,    
-    "figure.titlesize": 20
+    "font.size": 16,
+    "axes.titlesize": 18,
+    "axes.labelsize": 16,
+    "xtick.labelsize": 14,
+    "ytick.labelsize": 14,
+    "legend.fontsize": 16,
 })
 
 T = 5
@@ -33,25 +32,25 @@ def pi_hat_analytic(nu):
 t = np.linspace(-2, 2, 1000)
 nu = np.linspace(-10, 10, 1000)
 
-fig1 = plt.figure()
-plt.plot(t, pi_func(t))
-plt.title("Функция Π(t)")                     # Заголовок на русском
-plt.xlabel("Время t")                         # Подпись оси X
-plt.ylabel("Значение Π(t)")                   # Подпись оси Y
-plt.grid()
-fig1.tight_layout()
-fig1.savefig(os.path.join(output_dir, "Pi_1.png"), dpi=300)
-plt.close(fig1)
+# fig1 = plt.figure()
+# plt.plot(t, pi_func(t))
+# plt.title("Функция Π(t)")                     # Заголовок на русском
+# plt.xlabel("Время t")                         # Подпись оси X
+# plt.ylabel("Значение Π(t)")                   # Подпись оси Y
+# plt.grid()
+# fig1.tight_layout()
+# fig1.savefig(os.path.join(output_dir, "Pi_1.png"), dpi=300)
+# plt.close(fig1)
 
-fig2 = plt.figure()
-plt.plot(nu, pi_hat_analytic(nu))
-plt.title("Аналитический")   
-plt.xlabel("Частота ν")                               # Подпись оси X
-plt.ylabel("Значение образа")            # Подпись оси Y
-plt.grid()
-fig2.tight_layout()
-fig2.savefig(os.path.join(output_dir, "Pi_hat_1.png"), dpi=300)
-plt.close(fig2)
+# fig2 = plt.figure()
+# plt.plot(nu, pi_hat_analytic(nu))
+# plt.title("Аналитический")   
+# plt.xlabel("Частота ν")                               # Подпись оси X
+# plt.ylabel("Значение образа")            # Подпись оси Y
+# plt.grid()
+# fig2.tight_layout()
+# fig2.savefig(os.path.join(output_dir, "Pi_hat_1.png"), dpi=300)
+# plt.close(fig2)
 # ----------------------------------------------------------------------------------------------------
 
 # ПУНКТ 1.3
@@ -130,7 +129,7 @@ for i, p in enumerate(param_sets):
 
 
         # --------- ГРАФИК 1: спектр ----------
-    fig1 = plt.figure(figsize=(14, 6))
+    fig1 = plt.figure(figsize=(10, 8))
  
     plt.plot(nu_dense, F_analytic_dense, label="Аналитический (sinc)")
     plt.plot(nu, np.real(F_num), '--', label="Численный (trapz)")
@@ -149,7 +148,7 @@ for i, p in enumerate(param_sets):
     plt.close(fig1)  # Освобождаем память
 
    # --------- ГРАФИК 2: восстановление ----------
-    fig2 = plt.figure(figsize=(14, 6))
+    fig2 = plt.figure(figsize=(12, 8))
     plt.plot(t_fine, f_fine, label="Исходный сигнал Π(t)")
     plt.plot(t, np.real(f_rec), '--', label="Восстановленный сигнал")
 
@@ -195,7 +194,7 @@ def figs_1_3(T, dt, V, dnu, i):
 
 
         # --------- ГРАФИК 1: спектр ----------
-    fig1 = plt.figure(figsize=(14, 6))
+    fig1 = plt.figure(figsize=(10, 8))
  
     plt.plot(nu_dense, F_analytic_dense, label="Аналитический (sinc)")
     plt.plot(nu, np.real(F_num), '--', label="Численный (trapz)")
@@ -206,15 +205,15 @@ def figs_1_3(T, dt, V, dnu, i):
 
     plt.xlabel("Частота ν")
     plt.ylabel("Амплитуда")
-    plt.legend(loc="upper right")   
+    plt.legend(loc="upper right")
     plt.grid()
 
     fig1.tight_layout()
-    fig1.savefig(os.path.join(output_dir, f"{prefix}_set_{i+1}_spectrum.png"), dpi=300)
+    fig1.savefig(os.path.join(output_dir, f"{prefix}_set_{i+1}_spectrum.png"), dpi=100)
     plt.close(fig1)  # Освобождаем память
 
    # --------- ГРАФИК 2: восстановление ----------
-    fig2 = plt.figure(figsize=(14, 6))
+    fig2 = plt.figure(figsize=(12, 8))
     plt.plot(t_fine, f_fine, label="Исходный сигнал Π(t)")
     plt.plot(t, np.real(f_rec), '--', label="Восстановленный сигнал")
 
@@ -226,15 +225,19 @@ def figs_1_3(T, dt, V, dnu, i):
     plt.xlabel("Время t")
     plt.ylabel("Ампплитуда")
     plt.legend(loc="upper right")
+    # plt.legend(
+    #    bbox_to_anchor=(1.02, 1),
+    #     loc="upper left",
+    #     borderaxespad=0.
+    # )
     plt.grid()
 
     fig2.tight_layout()
     
-    fig2.savefig(os.path.join(output_dir, f"{prefix}_set_{i+1}_reconstruction.png"), dpi=300)
+    fig2.savefig(os.path.join(output_dir, f"{prefix}_set_{i+1}_reconstruction.png"), dpi=100)
     plt.close(fig2)  # Освобождаем память
 
     print(f"Сохранено: 1_3_set_{i+1}")
-
 figs_1_3(1,0.0001,2,0.01,0) #1
 #figs_1_3(5,0.0001,2,0.01,12) #13
 
