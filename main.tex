@@ -515,36 +515,44 @@ FFT работает с конечным набором отсчётов и эк
 \subsubsection*{3. Исследование метода и сранение}
 
 \subsubsection*{Исследование $T = 40$ -- удачный случай}
-\begin{center}
+\begin{figure}[H]
     \includegraphics[width=\textwidth]{task1/grafics/luky_T_40_1.png}
+    \caption{Исследование $T=40$ по частоте}
     \vspace{0.5cm}
     \includegraphics[width=\textwidth]{task1/grafics/luky_T_40_2.png}
-\end{center}
+    \caption{Исследование $T=40$ по времени}
+\end{figure}
 Чем больше временной промежуток, чем меньше шаг по частоте ($\Delta\nu = 1/T$), это позволило точно воспроизвести форму аналитического спектра ($\text{sinc}$). Обратное преобразование восстанавливает исходную прямоугольную функцию без искажений.
 
 \subsubsection*{Исследование $T = 2$ -- неудачный случай}
-\begin{center}
+\begin{figure}[H]
     \includegraphics[width=\textwidth]{task1/grafics/not_T_2_1.png}
+    \caption{Исследование $T=2$ по частоте}
     \vspace{0.5cm}
     \includegraphics[width=\textwidth]{task1/grafics/not_T_2_2.png}
-\end{center}
+    \caption{Исследование $T=2$ по частоте}
+\end{figure}
 Малый $T$ приводит к грубой частотной сетке. Форма искажается, а боковые лепестки практически не проглядываются. Во времени сигнал восстанавливается верно, так как шаг $\Delta t$ остается мелким.
 
 \subsubsection*{Исследование $\Delta t = 0.01$ -- удачный случай}
-\begin{center}
+\begin{figure}[H]
     \includegraphics[width=\textwidth]{task1/grafics/luky_t_0.01_1.png}
+    \caption{Исследование $t=0.01$ по частоте}
     \vspace{0.5cm}
     \includegraphics[width=\textwidth]{task1/grafics/luky_t_0.01_2.png}
-\end{center}
+    \caption{Исследование $t=0.01$ по времени}
+\end{figure}
 
 Спектральная оценка точно ложится на аналитическую кривую, а восстановленный сигнал идентичен исходному прямоугольнику. Случай хороший!
 
 \subsubsection*{Исследование $\Delta t = 0.30$  -- удачный случай}
-\begin{center}
+\begin{figure}[H]
     \includegraphics[width=\textwidth]{task1/grafics/not_t_0.30_1.png}
+    \caption{Исследование $t=0.30$ по частоте}
     \vspace{0.5cm}
     \includegraphics[width=\textwidth]{task1/grafics/not_t_0.30_2.png}
-\end{center}
+    \caption{Исследование $t=0.30$ по времени}
+\end{figure}
 
 Крупный шаг $\Delta t$ нарушает условие дискретизации, вызывая эффект наложения спектров. Амплитуда спектра занижена, форма искажена. Во времени это проявляется как «сглаживание» резких фронтов прямоугольника (превращение в трапецию) из-за потери высокочастотных компонент.
 
@@ -573,19 +581,14 @@ FFT работает с конечным набором отсчётов и эк
 
 Метод успешно объединяет точность численного интегрирования и быстродействие БПФ. Если взять дстаточный временной интервал для получения мелкого шага по частоте и малый шаг дискретизации для выполнения теоремы Котельникова, то численный результат практически неотличим от аналитического решения. В общем, получился очень эффективный метод.
 
-
 \subsection*{Сравнение всех методов}
 % Первая пара: частотная и временная область (случай 1)
 \begin{figure}[H]
-    \centering
     \includegraphics[width=\textwidth]{task1/grafics/all1.png}
-
+    \caption{Сравнение всех методов по частоте}
     \vspace{0.5cm}
-
     \includegraphics[width=\textwidth]{task1/grafics/all2.png}
-
-    \caption{Сравнение методов вычисления преобразования Фурье}
-    \label{fig:all_methods_comparison}
+    \caption{Сравнение всех методов по времени}
 \end{figure}
 Здесь показано сранение всех методов задания: численное интегрирование (\texttt{trapz}), стандартное БПФ (\texttt{fft}) и разработанный метод Римана-БПФ. 
 
