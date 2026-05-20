@@ -63,34 +63,31 @@ def plot_spectrum(T, dt, outdir, suffix, col_analytic, col_unitary):
     print(f"Сохранён спектр: {filename}")
 
 def plot_reconstruction(T, dt, outdir, suffix, col_orig, col_rec):
+    t, x, dt, N = get_grid(T, dt)
     t_dft, x_dft, dt, N = get_grid(T, dt)
+    nu, F = unitary_dft(x, dt)
+    x_rec = inverse_unitary_dft(F, dt)
+    error = np.linalg.norm(x - x_rec) / np.linalg.norm(x)
+
     
-    # Выполняем прямое и обратное унитарное DFT
-    nu, F = unitary_dft(x_dft, dt)
-    x_rec = inverse_unitary_dft(F, dt)   # восстановленные отсчёты (совпадают с x_dft с точностью до ошибок округления)
-    error = np.linalg.norm(x_dft - x_rec) / np.linalg.norm(x_dft)
-    
-    # Создаём плотную временную сетку для отображения идеального прямоугольного сигнала
-    t_dense = np.linspace(t_dft.min(), t_dft.max(), 2000)
-    x_dense = rect_func(t_dense)   # идеальный сигнал
-    
-    # Построение
-    plt.figure(figsize=(10, 4.2), facecolor='white')
-    plt.plot(t_dense, x_dense, color=col_orig, linewidth=2.0, label='Исходный Π(t) (плотная сетка)')
-    plt.plot(t_dft, x_rec, 'o', color=col_rec, markersize=4, label=f'Восстановленный из DFT (отсчёты)\nошибка = {error:.2e}')
-    # Для наглядности можно соединить отсчёты пунктиром (по желанию)
-    plt.plot(t_dft, x_rec, '--', color=col_rec, linewidth=0.8, alpha=0.5)
-    plt.grid(True, alpha=0.3)
-    plt.xlim(t_dft.min(), t_dft.max())
-    plt.ylim(-0.2, 1.2)
+    t_dense = np.linspace(-5, 5, 2000)
+    x_ideal = rect_func(t_dense)
+
+    plt.figure(figsize=(8.4, 4.2), facecolor='white')
+    plt.plot(t_dense, x_ideal, color=col_orig, linewidth=2.0, label='Исходный Π(t)')
+    plt.plot(t, x_rec, '--', color=col_rec, linewidth=1.5,
+             label=f'Восстановленный (ошибка = {error:.2e})')
+    plt.grid(True, color=[0.7, 0.7, 0.7])
+    plt.xlim(-5,5)
     plt.xlabel('Время t', fontsize=12)
     plt.ylabel('Сигнал Π(t)', fontsize=12)
-    plt.title(f'Исходный и восстановленный сигнал (T={T}, dt={dt:.3f})', fontsize=12)
-    plt.legend(loc='upper right')
+    plt.title(f'Восстановление сигнала (T={T}, dt={dt:.3f})', fontsize=12)
+    plt.legend(loc='upper right', fontsize=10)
     plt.tight_layout()
-    plt.savefig(os.path.join(outdir, f'signal_reconstruction_{suffix}.png'), dpi=150)
+    filename = f'reconstruction_{suffix}.png'
+    plt.savefig(os.path.join(outdir, filename), dpi=150)
     plt.close()
-    print(f"  Ошибка восстановления (унитарный DFT): {error:.2e}")
+    print(f"Сохранён график восстановления: {filename} (ошибка = {error:.2e})")
 
 cases = [
     (10, 0.05, 'bad_dt'),
@@ -103,6 +100,6 @@ cases = [
 for T, dt, suffix in cases:
     print(f"\nОбработка случая: T={T}, dt={dt} -> {suffix}")
     plot_spectrum(T, dt, outdir, suffix, COL_ANALYTIC, COL_UNITARY)
-#    plot_reconstruction(T, dt, outdir, suffix, COL_ORIG, COL_REC)
+    plot_reconstruction(T, dt, outdir, suffix, COL_ORIG, COL_REC)
 
 print(f"\nВсе графики сохранены в папку: {outdir}")
