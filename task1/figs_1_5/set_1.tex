@@ -1,36 +1,92 @@
 
-    \subsection*{Параметры: $T=2$, $\Delta t=0.01$, $V=12$, $\Delta \nu=0.01$}
+    \subsection*{Базовые параметры}
 
     \begin{figure}[H]
         \centering
-        \includegraphics[width=0.8\textwidth]{task1/figs_1_5/dft_bad_T_spectrum.png}
+        \includegraphics[width=0.8\textwidth]{task1/figs_1_5/spectrum_dense.png}
         \caption{Спектр сигнала $\Pi(t)$ (численный FFT и аналитический sinc)}
     \end{figure}
-Функция имеет много "острых" углов, требуется более точное приближение.
+График унитарного DFT-образа и аналитического синуса значительно отличаются. 
+   
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.8\textwidth]{task1/figs_1_5/reconstruction_dense.png}
+        \caption{Восстановление сигнала $\Pi(t)$ методом FFT}
+    \end{figure}
+Восстановленный график с хорошей точностью совпадает с исходной функцией. 
+
+Рассмотрим далее измененный параметры $\Delta$ t и $T$.
 
     
-\subsection*{Параметры: $T=10$, $\Delta t=0.01$, $V=12$, $\Delta \nu=0.01$}
+\subsection*{Большой $\Delta t$}
 
     \begin{figure}[H]
         \centering
-        \includegraphics[width=0.8\textwidth]{task1/figs_1_5/dft_good_T_spectrum.png}
+        \includegraphics[width=0.8\textwidth]{task1/figs_1_5/spectrum_bad_dt.png}
         \caption{Спектр сигнала $\Pi(t)$ (численный FFT и аналитический sinc)}
     \end{figure}
-Функция стала более гладкой, спектр стал ближе к аналитическому sinc-образному виду.
+При крупном шаге дискретизации сужается частотный диапазон. 
 
 
-    \subsection*{Параметры: $T=10$, $\Delta t=0.1$, $V=10$, $\Delta \nu=0.01$}
+
     \begin{figure}[H]
         \centering
-        \includegraphics[width=0.8\textwidth]{task1/figs_1_5/dft_bad_dt_reconstruction.png}
+        \includegraphics[width=0.8\textwidth]{task1/figs_1_5/reconstruction_bad_dt.png}
         \caption{Восстановление сигнала $\Pi(t)$ методом FFT}
     \end{figure}
+Видны заметные различия между исходным и восстановленным сигналами.
+
+
+ \subsection*{Маленький $\Delta t$}
+
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.8\textwidth]{task1/figs_1_5/spectrum_good_dt.png}
+        \caption{Спектр сигнала $\Pi(t)$ (численный FFT и аналитический sinc)}
+    \end{figure}
+
+   
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.8\textwidth]{task1/figs_1_5/reconstruction_good_dt.png}
+        \caption{Восстановление сигнала $\Pi(t)$ методом FFT}
+    \end{figure}
+При небольшом $\Delta t$ частотным диапазон расширяается, линии сгущаются. Структрура больше напоминает sinc.
     
-    \subsection*{Параметры: $T=10$, $\Delta t=0.001$, $V=10$, $\Delta \nu=0.01$}
+Далее рассмотрим изменения параметра $T$.
+     
+    \subsection*{Большой $T$}
 
     \begin{figure}[H]
         \centering
-        \includegraphics[width=0.8\textwidth]{task1/figs_1_5/dft_good_dt_reconstruction.png}
+        \includegraphics[width=0.8\textwidth]{task1/figs_1_5/spectrum_bad_T.png}
+        \caption{Спектр сигнала $\Pi(t)$ (численный FFT и аналитический sinc)}
+    \end{figure}
+При большом параметре $T$ частотная сетка гуще, однако расходится с кардинальным синусом.
+   
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.8\textwidth]{task1/figs_1_5/reconstruction_bad_T.png}
         \caption{Восстановление сигнала $\Pi(t)$ методом FFT}
     \end{figure}
-Точность приближения восстановленной функции значительно улучшилась.
+
+
+
+    \subsection*{Малый T}
+
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.8\textwidth]{task1/figs_1_5/spectrum_good_T.png}
+        \caption{Спектр сигнала $\Pi(t)$ (численный FFT и аналитический sinc)}
+    \end{figure}
+При малом параметре $T$ остается только один-единственный ненулевой отсчёт, на всей остальной сетке восстановление сопадает с осью OX.
+   
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.8\textwidth]{task1/figs_1_5/reconstruction_good_T.png}
+        \caption{Восстановление сигнала $\Pi(t)$ методом FFT}
+    \end{figure}
+
+Восстановление сигнала невозможно полностью, поэтому функция обрывается за пределами отрезка [-0.5; 0.5].
+    
+    
